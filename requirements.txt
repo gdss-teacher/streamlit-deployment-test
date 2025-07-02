@@ -3,5 +3,6 @@ earthengine-api
 folium
 geemap
 setuptools
+streamlit_folium
 
 
