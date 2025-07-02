@@ -24,8 +24,19 @@ selection = st.sidebar.radio("Go to", pages)
 
 @st.cache_resource
 def initialize_ee():
-    ee.Authenticate()
-    ee.Initialize(project='ee-gdss-teacher')
+    if 'EE_SERVICE_ACCOUNT_JSON' in st.secrets:
+        service_account_info = st.secrets["EE_SERVICE_ACCOUNT_JSON"]
+        credentials = ee.ServiceAccountCredentials(
+            service_account_info['client_email'], 
+            key_data=service_account_info['private_key']
+        )
+        ee.Initialize(credentials)
+    else:
+        try:
+            ee.Initialize(project='ee-gdss-teacher')
+        except Exception as e:
+            st.error(f"Error initializing Earth Engine: {e}")
+            st.error("Please make sure you have authenticated with Earth Engine locally or configured secrets for deployment.")
 
 #initialze GEE
 initialize_ee()
