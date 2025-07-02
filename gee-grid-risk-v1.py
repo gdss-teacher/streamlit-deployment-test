@@ -1,4 +1,4 @@
-# Filename: app-geemap.py
+# Filename: gee-grid-risk-v1.py
 
 import streamlit as st
 import ee
@@ -19,7 +19,7 @@ st.set_page_config(
 # Sidebar navigation
 st.sidebar.title("Navigation")
 pages = ["About the App", "Network Initialization", "Historical Weather Exposure", 
-         "Combined Historical and Forecast Weather Exposure", "Experimental Page 1", "Experimental Page 2", "Experimental Page 3"]
+         "Combined Historical and Forecast Weather Exposure"]
 selection = st.sidebar.radio("Go to", pages)
 
 @st.cache_resource
