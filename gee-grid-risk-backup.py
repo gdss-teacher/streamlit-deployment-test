@@ -1,9 +1,8 @@
-# Filename: app-geemap.py
+# Filename: gee-grid-risk-v1.py
 
 import streamlit as st
 import ee
 import geemap.foliumap as geemap
-#import geemap
 import folium
 from streamlit_folium import st_folium
 
@@ -47,59 +46,13 @@ initialize_ee()
 # ────────────────────────────────────────────────────────────────────────────
 if selection == "Network Initialization":
     st.header('Network Initialization')
-    
-    karachi = ee.Geometry.Point(67.0011, 24.8607)
-    roi = karachi.buffer(600000).bounds()
-    if "point_assets" not in st.session_state:
-        st.session_state.point_assets = ee.FeatureCollection([
-            ee.Feature(ee.Geometry.Point(66.6567, 25.6453), {'name': 'Tower_1'}),
-            ee.Feature(ee.Geometry.Point(67.0153, 24.8732), {'name': 'Tower_2'}),
-            ee.Feature(ee.Geometry.Point(67.5428, 25.0973), {'name': 'Tower_3'}),
-            ee.Feature(ee.Geometry.Point(68.1849, 25.3322), {'name': 'Tower_4'}),
-            ee.Feature(ee.Geometry.Point(67.7472, 27.1833), {'name': 'Tower_5'})
-            ]);
-    if "line_assets" not in st.session_state:
-        st.session_state.line_assets = ee.FeatureCollection([
-            ee.Feature(ee.Geometry.LineString([[66.6567, 25.6453],[67.5428, 25.0973]]), {'name': 'Line_1', 'from': '1', 'to': '3'}),
-            ee.Feature(ee.Geometry.LineString([[67.0153, 24.8732],[67.5428, 25.0973]]), {'name': 'Line_2', 'from': '2', 'to': '3'}),
-            ee.Feature(ee.Geometry.LineString([[67.5428, 25.0973],[68.1849, 25.3322]]), {'name': 'Line_3', 'from': '3', 'to': '4'}),
-            ee.Feature(ee.Geometry.LineString([[68.1849, 25.3322],[67.7472, 27.1833]]), {'name': 'Line_4', 'from': '4', 'to': '5'})
-            ]);
-    
-
-    Map = geemap.Map()
-    Map.centerObject(karachi, 5)
-    Map.addLayer(st.session_state.point_assets, {'color': 'red'}, 'Infrastructure Point Assets');
-    Map.addLayer(st.session_state.line_assets, {'color': 'red'}, 'Infrastructure Line Assets');
-
-    # Add layer control
-    Map.addLayerControl()
-
-    # Render the map in Streamlit
-    Map.to_streamlit(width=700, height=500)
-
-    
-
 
 # ────────────────────────────────────────────────────────────────────────────
 # Page 2 :  Historical Weather Exposure Analysis
 # ────────────────────────────────────────────────────────────────────────────
 elif selection == "Historical Weather Exposure":
     st.header('Historical Weather Exposure Analysis')
-    
-    # Set up the temporary "network of interest"
-    karachi = ee.Geometry.Point(67.0011, 24.8607)
-    roi = karachi.buffer(600000).bounds()
-    if "point_assets" not in st.session_state:
-        st.session_state.point_assets = ee.FeatureCollection([
-            ee.Feature(ee.Geometry.Point(66.6567, 25.6453), {'name': 'Tower_1'}),
-            ee.Feature(ee.Geometry.Point(67.0153, 24.8732), {'name': 'Tower_2'}),
-            ee.Feature(ee.Geometry.Point(67.5428, 25.0973), {'name': 'Tower_3'}),
-            ee.Feature(ee.Geometry.Point(68.1849, 25.3322), {'name': 'Tower_4'}),
-            ee.Feature(ee.Geometry.Point(67.7472, 27.1833), {'name': 'Tower_5'})
-            ]);
-    
-    
+   
     # Default date range
     start_date = date(2023, 1, 1)
     end_date = date(2023, 12, 31)
@@ -134,6 +87,18 @@ elif selection == "Historical Weather Exposure":
     )
 
 
+    # Set up the temporary "network of interest"
+    karachi = ee.Geometry.Point(67.0011, 24.8607)
+    roi = karachi.buffer(600000).bounds()
+    assets = ee.FeatureCollection([
+        ee.Feature(ee.Geometry.Point(67.0011, 24.8607), {'name': 'Tower_1'}),
+        ee.Feature(ee.Geometry.Point(67.0321, 24.8455), {'name': 'Tower_2'}),
+        ee.Feature(ee.Geometry.Point(67.0153, 24.8732), {'name': 'Tower_3'})
+        ]);
+    
+    
+    
+
     if st.session_state.historical_exposure_measure == "MeanOverStudyPeriod":
         # Add some space before the map
         #st.markdown("### \n\n")
@@ -149,8 +114,7 @@ elif selection == "Historical Weather Exposure":
         #Map = geemap.Map(center=karachi, zoom=5)
         Map = geemap.Map()
         Map.centerObject(karachi, 5)
-        Map.addLayer(st.session_state.point_assets, {'color': 'red'}, 'Infrastructure Point Assets');
-        Map.addLayer(st.session_state.line_assets, {'color': 'red'}, 'Infrastructure Line Assets');
+        Map.addLayer(assets, {'color': 'red'}, 'Infrastructure Assets');
         era5Monthly = ee.ImageCollection('ECMWF/ERA5_LAND/MONTHLY_AGGR')
         era5MonthlyTemp = era5Monthly.select('temperature_2m').filterDate(selected_start).first().clip(roi)
         temp_vis = {
@@ -246,8 +210,7 @@ elif selection == "Historical Weather Exposure":
         #Map = geemap.Map(center=karachi, zoom=5)
         Map = geemap.Map()
         Map.centerObject(roi, 5)
-        Map.addLayer(st.session_state.point_assets, {'color': 'red'}, 'Infrastructure Point Assets');
-        Map.addLayer(st.session_state.line_assets, {'color': 'red'}, 'Infrastructure Line Assets');
+        Map.addLayer(assets, {'color': 'red'}, 'Infrastructure Assets');
 
         era5MonthlyTemp = ee.ImageCollection("ECMWF/ERA5_LAND/MONTHLY_AGGR") \
             .filterDate(selected_start, selected_end) \
@@ -363,14 +326,11 @@ elif selection == "Combined Historical and Forecast Weather Exposure":
     karachi = ee.Geometry.Point(67.0011, 24.8607)
     roi = karachi.buffer(600000).bounds()
     #roi = ee.Geometry.BBox(60, 23, 78, 38);  # e.g., Pakistan
-    if "point_assets" not in st.session_state:
-        st.session_state.point_assets = ee.FeatureCollection([
-            ee.Feature(ee.Geometry.Point(66.6567, 25.6453), {'name': 'Tower_1'}),
-            ee.Feature(ee.Geometry.Point(67.0153, 24.8732), {'name': 'Tower_2'}),
-            ee.Feature(ee.Geometry.Point(67.5428, 25.0973), {'name': 'Tower_3'}),
-            ee.Feature(ee.Geometry.Point(68.1849, 25.3322), {'name': 'Tower_4'}),
-            ee.Feature(ee.Geometry.Point(67.7472, 27.1833), {'name': 'Tower_5'})
-            ]);
+    assets = ee.FeatureCollection([
+        ee.Feature(ee.Geometry.Point(67.0011, 24.8607), {'name': 'Tower_1'}),
+        ee.Feature(ee.Geometry.Point(67.0321, 24.8455), {'name': 'Tower_2'}),
+        ee.Feature(ee.Geometry.Point(67.0153, 24.8732), {'name': 'Tower_3'})
+        ]);
     
     # Define Weather Exposure Parameters
 
@@ -613,8 +573,7 @@ elif selection == "Combined Historical and Forecast Weather Exposure":
     Map = geemap.Map()
     Map.centerObject(roi, 4)
 
-    Map.addLayer(st.session_state.point_assets, {'color': 'red'}, 'Infrastructure Point Assets');
-    Map.addLayer(st.session_state.line_assets, {'color': 'red'}, 'Infrastructure Line Assets');
+    Map.addLayer(assets, {'color': 'red'}, 'Infrastructure Assets');
 
     Map.addLayer(hotMonthsRatioImg, ratio_vis, f"Hot Months Ratio ({high_temp_threshold} °C)", shown=False) 
     Map.addLayer(coldMonthsRatioImg, ratio_vis, f"Cold Months Ratio ({low_temp_threshold} °C)", shown=False) 
